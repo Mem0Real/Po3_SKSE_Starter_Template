@@ -1,15 +1,12 @@
-# Simple Activate SKSE
-
-SKSE plugin that streamlines activation prompts
+# Powerof3's Fork of CommonLibSSE Starter Template
 
 ## Requirements
+* [Visual Studio Community (Latest) ](https://visualstudio.microsoft.com/)
+	* Desktop development with C++
 * [CMake](https://cmake.org/)
 	* Add this to your `PATH`
-* [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest)
 * [Vcpkg](https://github.com/microsoft/vcpkg)
 	* Add the environment variable `VCPKG_ROOT` with the value as the path to the folder containing vcpkg
-* [Visual Studio Community 2019](https://visualstudio.microsoft.com/)
-	* Desktop development with C++
 * [CommonLibSSE](https://github.com/powerof3/CommonLibSSE/tree/dev)
 	* You need to build from the powerof3/dev branch
 	* Add this as as an environment variable `CommonLibSSEPath`
@@ -21,8 +18,8 @@ SKSE plugin that streamlines activation prompts
 
 ## Building
 ```
-git clone https://github.com/powerof3/SimpleActivateSKSE.git
-cd SimpleActivateSKSE
+git clone https://github.com/Mem0Real/Po3_SKSE_Starter_Template.git
+cd Po3_SKSE_Starter_Template
 cmake -B build -S .
 ```
 ## License
