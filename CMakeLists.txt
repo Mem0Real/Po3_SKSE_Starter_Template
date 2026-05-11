@@ -5,8 +5,8 @@ set(AE_VERSION 1)
 
 # ---- Options ----
 
-option(COPY_BUILD "Copy the build output to the Skyrim directory." TRUE)
-option(BUILD_SKYRIMAE "Build for Skyrim AE" OFF)
+option(COPY_BUILD "Copy the build output to the Skyrim directory or Mod folder." TRUE)
+option(BUILD_SKYRIMAE "Build for Skyrim AE" ON)
 
 # ---- Cache build vars ----
 macro(set_from_environment VARIABLE)
@@ -29,7 +29,7 @@ macro(find_commonlib_path)
 	endif()
 endmacro()
 
-set_from_environment(VCPKG_ROOT)
+# set_from_environment(VCPKG_ROOT)
 if(BUILD_SKYRIMAE)
 	add_compile_definitions(SKYRIM_AE)
 	add_compile_definitions(SKYRIM_SUPPORT_AE)
@@ -44,6 +44,8 @@ else()
 	set(SkyrimPath ${Skyrim64Path})
 	set(SkyrimVersion "Skyrim SSE")
 endif()
+
+
 find_commonlib_path()
 message(
 	STATUS
@@ -53,11 +55,6 @@ message(
 if (DEFINED VCPKG_ROOT)
 	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 	set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
-else ()
-	message(
-		WARNING
-		"Variable VCPKG_ROOT is not set. Continuing without vcpkg."
-	)
 endif ()
 
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
@@ -82,6 +79,8 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/version.rc
 	@ONLY
 )
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---- Include guards ----
 
@@ -217,31 +216,34 @@ endif()
 # ---- Post build ----
 
 if (COPY_BUILD)
-	if (DEFINED SkyrimPath)
+	# Only attempt to copy if the environment variable is set
+	if(DEFINED ENV{SKYRIM_MODS_FOLDER})
+		add_custom_command(
+			TARGET ${PROJECT_NAME}
+			POST_BUILD
+			
+			# Create the folder structure
+			COMMAND ${CMAKE_COMMAND} -E make_directory 
+				"$ENV{SKYRIM_MODS_FOLDER}/${PROJECT_NAME}/SKSE/Plugins"
+			
+				# Copy the DLL
+			COMMAND ${CMAKE_COMMAND} -E copy 
+				"$<TARGET_FILE:${PROJECT_NAME}>" 
+				"$ENV{SKYRIM_MODS_FOLDER}/${PROJECT_NAME}/SKSE/Plugins/"
+
+			# NEW: Copy the INI from your source folder to the mod folder
+			COMMAND ${CMAKE_COMMAND} -E copy 
+				"${CMAKE_CURRENT_SOURCE_DIR}/Skyrim/Data/SKSE/Plugins/${PROJECT_NAME}.ini"
+				"$ENV{SKYRIM_MODS_FOLDER}/${PROJECT_NAME}/SKSE/Plugins/"
+
+			COMMENT "Plugin data copied to mod folder."
+		)
+	elseif (DEFINED SkyrimPath)
 		add_custom_command(
 			TARGET ${PROJECT_NAME}
 			POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${SkyrimPath}/SKSE/Plugins/
 			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> ${SkyrimPath}/SKSE/Plugins/
 		)
-	# else ()
-	# 	message(
-	# 		WARNING
-	# 		"Variable ${SkyrimPath} is not defined. Skipping post-build copy command."
-	# 	)
 	endif ()
 endif ()
-
-# Only attempt to copy if the environment variable is set
-if(DEFINED ENV{SKYRIM_MODS_FOLDER})
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory 
-            "$ENV{SKYRIM_MODS_FOLDER}/${PROJECT_NAME}/SKSE/Plugins"
-        COMMAND ${CMAKE_COMMAND} -E copy 
-            "$<TARGET_FILE:${PROJECT_NAME}>" 
-            "$ENV{SKYRIM_MODS_FOLDER}/${PROJECT_NAME}/SKSE/Plugins/"
-        COMMENT "Copying DLL to mod folder..."
-    )
-endif()
