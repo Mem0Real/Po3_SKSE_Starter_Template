@@ -3,7 +3,7 @@
 void MessageHandler(SKSE::MessagingInterface::Message* a_message) {
 	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
 		// Runs once the game reaches main menu
-		RE::ConsoleLog::GetSingleton()->Print("SavingGrace: Hello from the console");
+		RE::ConsoleLog::GetSingleton()->Print("Hello from the console");
 		logger::info("Hello from the log file!");
 	}
 }
